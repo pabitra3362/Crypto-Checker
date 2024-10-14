@@ -4,11 +4,28 @@ import axios from "axios";
 
 function Home() {
   const [country, setCountry] = useState("");
+  const [suggestions, setSuggestions] = useState([])
   const [cryptodata, setCryptodata] = useState([]);
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(null); // Error state
 
+  const data = ["USD", "EUR", "JPY", "GBP", "AUD", "CAD", "CHF", "CNY", "SEK", "NZD", "INR", "SGD", "HKD", "NOK", "MXN", "RUB", "ZAR"];
 
+  const handleCountry=(event)=> {
+    const value=event.target.value
+    setCountry(value);
+    if(value){
+      setSuggestions(data.filter(item=>item.toLowerCase().includes(value.toLowerCase())))
+    }else{
+      setSuggestions([])
+    }
+  }
+  const handleSuggestionClick=(suggestion) => {
+    setCountry(suggestion)
+    setSuggestions([])
+  }
+  
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,11 +49,21 @@ function Home() {
             type="text"
             placeholder="Enter currency code (e.g., usd)..."
             value={country}
-            onChange={(e) => setCountry(e.target.value)}
+            onChange={handleCountry}
           />
           <button className="border border-orange-400 hover:bg-orange-400 transition px-3 py-1 rounded-md mx-3">
             Search
           </button>
+          
+        {suggestions.length >0 && (
+          <ul>
+            {suggestions.map((item,index)=>(
+              <li
+              className="bg-blue-900 opacity-60 text-center text-lg transition font-bold w-80 mt-2"
+              key={index} onClick={()=>handleSuggestionClick(item)}>{item}</li>
+            ))}
+          </ul>
+        )}
         </form>
 
         {loading && <div className="text-white w-fit mx-auto">Loading...</div>}
