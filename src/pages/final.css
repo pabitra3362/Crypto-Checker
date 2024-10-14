@@ -1,8 +1,7 @@
-label{
-    width: 40%;
-    float: left;
-    text-align: left;
-    margin-right: 100px;
-    margin-left: 100px;
-    height: 50px;
+.final{
+    background-image: url("https://images.pexels.com/photos/14907338/pexels-photo-14907338.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2");
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    opacity: 0.8;
 }

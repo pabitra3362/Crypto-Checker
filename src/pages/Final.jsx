@@ -1,82 +1,52 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios'
-import './final.css'
-import { Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react'
+import './Final.css'
+import { useParams, Link } from 'react-router-dom';
+import { FaRupeeSign } from "react-icons/fa";
+
 
 const Final = () => {
-  const { id } = useParams(); // Destructure id from useParams
-    const country=localStorage.getItem('country')
-  const [data, setData] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const navigate=useNavigate()
-    const handleBtn=()=>{
-        localStorage.removeItem('country')
-        navigate('/')
-    }
+    const [filteredData, setFilteredData] = useState({})
+    const { id } = useParams()
 
-//   const specificData=data.filter((item)=>item.id===id)
+    useEffect(() => {
+        const savedData = localStorage.getItem('currency')
+        if (savedData) {
+            const parsedData = JSON.parse(savedData)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true); // Set loading to true at the beginning
-      setError(null); // Reset error state before fetching
+            const foundItem = parsedData.find(item => item.id === id)
+            setFilteredData(foundItem)
+        } else {
+            setData([])
+            setFilteredData({})
+        }
 
-      
-        axios.get(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=${country}`)
-        .then(response=>response.data)
-        .then(data => setData(...data.filter(item=>item.id===id)))
-        .finally(()=>setLoading(false))
-        .catch(error=>setError(error.message+" try again after some time."))
-        
-      
-    };
+    }, [id])
 
-    fetchData(); // Call the async function
-  }, [id,country]); // Dependency array includes country to refetch on change
-  console.log(data);
-  
-  
-  
+    return (
+        <div className='final min-h-screen pt-12'>
 
-  return (
-    <div>
-      {loading && <div className='w-fit mx-auto'>Loading...</div>}
-      {error && <div className='text-red-400 w-fit mx-auto'>{error}</div>}
-
-      {data!==0 ? <div className="container w-[50%] bg-slate-600 grid gap-x-6 items-center mx-auto my-5 rounded-xl">
-        <div className="img "><img className='w-56 h-44 my-9 ml-[30%] ' src={data.image} alt="" /></div>
-        <div className="id"><label htmlFor="Id">Id: </label>{data.id}</div>
-        <div className="name"><label htmlFor="Name">Name: </label>{data.name}</div>
-        <div className="price"><label htmlFor="price">Price: </label>{data.current_price}</div>
-        <div className="fully_diluted_valuation"><label htmlFor="fully_diluted_valuation">Fully_diluted_valuation: </label>{data.fully_diluted_valuation}</div>
-        <div className="market_cap"><label htmlFor="market_cap">market_cap: </label>{data.market_cap}</div>
-        <div className="market_cap_rank"><label htmlFor="market_cap_rank">market_cap_rank: </label>{data.market_cap_rank}</div>
-        <div className="total_volume"><label htmlFor="total_volume">total_volume: </label>{data.total_volume}</div>
-        <div className="high_24h"><label htmlFor="high_24h">high_24h: </label>{data.high_24h}</div>
-        <div className="low_24h"><label htmlFor="low_24h">low_24h: </label>{data.low_24h}</div>
-        <div className="price_change_24h"><label htmlFor="price_change_24h">price_change_24h: </label>{data.price_change_24h}</div>
-        <div className="price_change_percentage_24h"><label htmlFor="price_change_percentage_24h">price_change_percentage_24h: </label>{data.price_change_percentage_24h}</div>
-        <div className="market_cap_change_24h"><label htmlFor="market_cap_change_24h">market_cap_change_24h: </label>{data.market_cap_change_24h}</div>
-        <div className="market_cap_change_percentage_24h"><label htmlFor="market_cap_change_percentage_24h">market_cap_change_percentage_24h: </label>{data.market_cap_change_percentage_24h}</div>
-        <div className="circulating_supply"><label htmlFor="circulating_supply">circulating_supply: </label>{data.circulating_supply}</div>
-        <div className="total_supply"><label htmlFor="total_supply">total_supply: </label>{data.total_supply}</div>
-        <div className="ath"><label htmlFor="ath">ath: </label>{data.ath}</div>
-        <div className="ath_change_percentage"><label htmlFor="ath_change_percentage">ath_change_percentage: </label>{data.ath_change_percentage}</div>
-        <div className="ath_date"><label htmlFor="ath_date">ath_date: </label>{data.ath_date}</div>
-        <div className="atl"><label htmlFor="atl">atl: </label>{data.atl}</div>
-        <div className="atl_change_percentage"><label htmlFor="atl_change_percentage">atl_change_percentage: </label>{data.atl_change_percentage}</div>
-        <div className="atl_date"><label htmlFor="atl_date">atl_date: </label>{data.atl_date}</div>
-        <div className="last_updated"><label htmlFor="last_updated">last_updated: </label>{data.last_updated}</div>
-        <button className='border w-[40%] mx-auto my-5 border-blue-600 hover:bg-green-500 transition px-3 py-1 rounded-md' onClick={handleBtn}>Back to the page</button>
-
-
-      </div> : <div className="text-white text-2xl flex justify-center items-center mx-auto w-2/3 border border-white h-56 my-9">
-            <p>Don't have any data to show. Please go back try after some time.</p>
-          </div>}
-    </div>
-  );
+            {filteredData.length !== 0 && (
+                <div className='container w-[40%] bg-black opacity-80 mx-auto rounded-xl'>
+                    <h1 className='text-center text-5xl py-4 text-sky-500 font-bold'>{filteredData.name}</h1>
+                    <img className='mx-auto my-3' src={filteredData.image} height={150} width={150} alt="" />
+                    <div className="innerContainer grid grid-cols-2 justify-center text-center items-center leading-10 font-bold text-xl">
+                        <div className="symbol">Symbol:</div>
+                        <div>{filteredData.symbol}</div>
+                        <div className="price">Current Price:</div>
+                        <div className='flex justify-center gap-x-2 items-center'><FaRupeeSign />{filteredData.current_price}</div>
+                        <div className="marketCap">Market Cap:</div>
+                        <div>{filteredData.market_cap}</div>
+                        <div className="totalVolume">Total Volume:</div>
+                        <div>{filteredData.total_volume}</div>
+                        <div className="high">24hr High:</div>
+                        <div className="text-green-600 flex justify-center gap-x-2 items-center"><FaRupeeSign />{filteredData.high_24h}</div>
+                        <div className="low">24hr Low:</div>
+                        <div className='text-red-600 flex justify-center gap-x-2 items-center'><FaRupeeSign />{filteredData.low_24h}</div>
+                        <div className='col-span-2 my-4'><button className='border w-[40%] mx-auto my-5 border-blue-600 hover:bg-green-500 transition px-3 py-1 rounded-md'><Link to='/'>Go Back</Link></button></div>
+                    </div>
+                </div>)}
+        </div>
+    )
 }
 
-export default Final;
+export default Final

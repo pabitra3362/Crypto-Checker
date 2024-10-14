@@ -1,105 +1,110 @@
-import { useState } from "react";
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 import { Link } from 'react-router-dom';
-import axios from "axios";
+import { FaRupeeSign } from "react-icons/fa";
 
 function Home() {
-  const [country, setCountry] = useState("");
-  const [suggestions, setSuggestions] = useState([])
-  const [cryptodata, setCryptodata] = useState([]);
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(null); // Error state
+  const [currency, setCurrency] = useState("");
+  const [currencyData, setCurrencyData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const data = ["USD", "EUR", "JPY", "GBP", "AUD", "CAD", "CHF", "CNY", "SEK", "NZD", "INR", "SGD", "HKD", "NOK", "MXN", "RUB", "ZAR"];
+  const handleCurrency = (e) => {
+    const value = e.target.value;
+    setCurrency(value);
 
-  const handleCountry=(event)=> {
-    const value=event.target.value
-    setCountry(value);
-    if(value){
-      setSuggestions(data.filter(item=>item.toLowerCase().includes(value.toLowerCase())))
-    }else{
-      setSuggestions([])
+    // Filter the data based on the input value
+    if (value) {
+      const filtered = currencyData.filter(item =>
+        item.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredData(filtered);
+    } else {
+      setFilteredData(currencyData);
     }
-  }
-  const handleSuggestionClick=(suggestion) => {
-    setCountry(suggestion)
-    setSuggestions([])
-  }
-  
-  
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null); // Reset error state on new request
-
-    axios.get(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=${country}`)
-      .then(response => response.data)
-      .then(data => setCryptodata(data))
-      .then(() => localStorage.setItem('country', country))
-      .catch(error => setError(error.message+" try after some time."))
-      .finally(()=>setLoading(false))
   };
+
+  const handleBtn = () => {
+    setCurrency("");
+    setFilteredData(currencyData);
+  };
+
+  const handleData = (data) => {
+    setCurrencyData(data);
+    setFilteredData(data); // Initialize filteredData
+    localStorage.setItem('currency',JSON.stringify(data))
+  };
+
+  useEffect(() => {
+    axios.get("https://api.coingecko.com/api/v3/coins/markets?vs_currency=inr")
+      .then(response => handleData(response.data))
+      .catch(error => setError("Error while fetching data Please try after some time: " + error.message))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <>
-      <div className="container">
-        <form className="w-fit mx-auto mt-36 mb-10" onSubmit={handleSubmit}>
+      <div className="container w-2/3 mx-auto">
+        <form className='mx-auto w-fit mt-44 my-10'>
           <input
-            className="text-lg w-80 px-3 text-black font-bold"
+            className='text-black font-bold px-3 mx-3 text-lg'
             type="text"
-            placeholder="Enter currency code (e.g., usd)..."
-            value={country}
-            onChange={handleCountry}
+            value={currency}
+            onChange={handleCurrency}
+            placeholder='Enter currency name'
           />
-          <button className="border border-orange-400 hover:bg-orange-400 transition px-3 py-1 rounded-md mx-3">
-            Search
+          <button
+            type='button'
+            className='border border-orange-400 hover:bg-orange-400 transition px-3 py-1 rounded-md mx-3'
+            onClick={handleBtn}
+          >
+            Refresh
           </button>
-          
-        {suggestions.length >0 && (
-          <ul>
-            {suggestions.map((item,index)=>(
-              <li
-              className="bg-blue-900 opacity-60 text-center text-lg transition font-bold w-80 mt-2"
-              key={index} onClick={()=>handleSuggestionClick(item)}>{item}</li>
-            ))}
-          </ul>
-        )}
         </form>
 
         {loading && <div className="text-white w-fit mx-auto">Loading...</div>}
 
-        <div className="cryptodata">
-
+        <div className="currencyData">
           {error && <div className="text-red-500 w-fit mx-auto">{error}</div>}
-          {cryptodata != 0 && <table className="mx-auto">
-            <thead>
-              <tr>
-                <th>name</th>
-                <th>price</th>
-                <th>symbol</th>
-                <th>last updated date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cryptodata.map(item => (
-                <tr className="border border-white px-2" key={item.id}>
-                  <td className="pl-6">{item.name}</td>
-                  <td>{item.current_price}</td>
-                  <td><img loading="lazy" src={item.image} height={50} width={50} alt="" /></td>
-                  <td>{item.last_updated}</td>
-                  <td><button className="border border-blue-600 hover:bg-blue-700 transition px-3 py-1 rounded-md mx-3"><Link to={`/crypto/${item.id}`}>Show Details</Link></button></td>
+
+          {filteredData.length > 0 ? (
+            <table className="mx-auto">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Name</th>
+                  <th>Price</th>
+                  <th>Last Updated</th>
+                  <th>Details</th>
                 </tr>
-              ))}
-            </tbody>
-
-          </table>}
+              </thead>
+              <tbody>
+                {filteredData.map(item => (
+                  <tr className="border border-white px-2" key={item.id}>
+                    <td className="px-4">
+                      <img loading="lazy" src={item.image} height={50} width={50} alt={item.name} />
+                    </td>
+                    <td className="px-2">{item.name}</td>
+                    <td className="px-2"><div className='flex gap-x-2 justify-center items-center'><FaRupeeSign />{item.current_price}</div></td>
+                    <td className="px-2">{item.last_updated}</td>
+                    <td className="px-2">
+                      <button className="border border-blue-600 hover:bg-blue-700 transition px-3 py-1 rounded-md mx-3">
+                        <Link to={`/crypto/${item.id}`}>Show Details</Link>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            !loading && !error && (
+              <div className="text-white text-2xl flex justify-center items-center mx-auto w-2/3 border border-white h-56">
+                <p>Don't have any data to show. Please try again later.</p>
+              </div>
+            )
+          )}
         </div>
-
-        {cryptodata.length === 0 && !loading && !error && (
-          <div className="text-white text-2xl flex justify-center items-center mx-auto w-2/3 border border-white h-56">
-            <p>Don't have any data to show. Please write the country code.</p>
-          </div>
-        )}
       </div>
     </>
   );
